@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>ru.bur</groupId>
+    <artifactId>jookConfig</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+            <version>2.0.4.RELEASE</version>
+        </dependency>
+
+        <!-- первая БД -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+            <version>42.2.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jooq</groupId>
+            <artifactId>jooq</artifactId>
+            <version>3.11.3</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <postgreSQL.db.url>jdbc:postgresql://localhost:5432/BD_NAME</postgreSQL.db.url>
+        <postgreSQL.db.user>login</postgreSQL.db.user>
+        <postgreSQL.db.pass>password</postgreSQL.db.pass>
+
+    </properties>
+
+
+    <build>
+        <plugins>
+            <!-- Этот плагин генерирует данные из первой БД - PostgreSQL -->
+            <plugin>
+                <groupId>org.jooq</groupId>
+                <artifactId>jooq-codegen-maven</artifactId>
+                <version>3.10.7</version>
+
+                <!-- Плагин должен подключиться к цели генерации -->
+                <executions>
+                    <execution>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+                <!-- Specify the plugin configuration. The configuration format is the same as for the standalone code generator -->
+                <configuration>
+                    <jdbc>
+                        <driver>org.postgresql.Driver</driver>
+                        <url>${postgreSQL.db.url}</url>
+                        <user>${postgreSQL.db.user}</user>
+                        <password>${postgreSQL.db.pass}</password>
+                    </jdbc>
+
+                    <generator>
+                        <database>
+                            <!--<name>org.jooq.util.postgres.PostgresDatabase</name>-->
+                            <includes>.*</includes>
+                            <excludes/>
+                            <inputSchema>DB_SCHEMA</inputSchema>
+                            <!--syntheticPrimaryKeys нужны, чтобы подсказать, что в таблице является первичным ключем -->
+                            <syntheticPrimaryKeys>SCHEMA\.TABLE\.COLUMN(1|2)</syntheticPrimaryKeys>
+                        </database>
+                        <target>
+                            <directory>${basedir}/src/main/java</directory>
+                            <packageName>ru.bur.db_generation</packageName>
+                        </target>
+                        <generate>
+                            <daos>true</daos>
+                        </generate>
+                    </generator>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
